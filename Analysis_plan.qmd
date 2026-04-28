@@ -110,7 +110,7 @@ table_final
 
 After importing and screening the data, it seems that everything is in order. The @tbl-Numerical shows the Patient ID, FEV1 improvement score, Age of the Patient and the Baseline FEV1. The last two predictors, mainly the treatment group and smoking status were not included, as their descriptive statistics are not interpret-able due to them being categorical variables. Additionally, in the numerical exploration a correlation matrix was done to explore possible pre-preemptive correlations as well as the possibility of co-linearity, a violation of our later model choice. The correlation matrix showed a weak to moderate negative correlation between the treatment group (ICSX or standard inhaler) with a value of `r corr_matrix[5,2]`\`. In other words, the ICSX treatment in this preemptive exploration accounts for a `r abs(corr_matrix[5,2])` higher FEV1 then the standard inhaler, however this is very early on in the process, meaning this value cannot be interpreted, instead gave us a good indication of a possible effect direction. Addtionally, it was intresting that the FEV1 improvement also heavily depended on the FEV1 baseline showing a moderate negative correlation of `r corr_matrix[4,2]`\`. The final variable that contained intresting information was the smoking status, showing a weak to moderate negative correlation of `r corr_matrix[6, 2]`\`with FEV1 improvement. This will need to be further explored graphically.
 
-## Graphical Exploration 
+## Graphical Exploration
 
 ```{r}
 #| label: fig-Graphical-Exploration
@@ -142,3 +142,36 @@ ggarrange(p1, p2, common.legend = T)
 ```
 
 As shown in both the left and right plot in the @fig-Graphical-Exploration, there is a negative relationship for both treatment groups (standard treatment and ICSX) for increasing baseline FEV1 value. Although counterintuitive, the plot on the right showing smoking status vs FEV1 improvement indicates a positive relationship between increasing smoking and FEV1 improvement, nonetheless the confidence is low. Additionally, this makes me consider a interaction based model as this is biologically not as clear to me.
+
+## Model Fitting and Selection
+
+Since the outcome is continous, we will fit a linear model. Additionally, the assumption of normality is fullfilled as shown by the shapiro wilk test returning a p-value of `r shapiro.test(dd$fev1_improvement)[2]`\`. However, the full assumptions will be checked later.
+
+Variables being considered :
+
+-   **Outcome**: FEV1 improvment
+
+-   **Predictors**: treatment, FEV1 baseline, smoking status
+
+These variables are considered due to apriori understanding of respiratory function, as well as a initial graphical and numerical exploration indicating these variables contain a large association with the outcome.
+
+```{r}
+#| label: Fitting-models
+#| echo: true
+#| output: false
+
+
+model.null <- lm(data = dd, fev1_improvement ~ 1)
+model.1 <- lm(data = dd, fev1_improvement ~ treatment_group)
+model.2 <- lm(data = dd, fev1_improvement ~ treatment_group + baseline_fev1)
+model.3 <- lm(data = dd, fev1_improvement ~ treatment_group * baseline_fev1)
+model.4 <- lm(data = dd, fev1_improvement ~ treatment_group + baseline_fev1 + smoking_status)
+model.5 <- lm(data = dd, fev1_improvement ~ treatment_group + baseline_fev1 * smoking_status)
+model.6 <- lm(data = dd, fev1_improvement ~ treatment_group * baseline_fev1 * smoking_status)
+
+compare_models <- anova(model.null, model.1, model.2, model.3, model.4, model.5, model.6)
+
+AIC_compare <- compare_performance(model.null, model.1, model.2, model.3, model.4, model.5, model.6)
+```
+
+I will go with model.4, which contains additivly the predictor variables `r colnames(dd)[6]`\`, `r colnames(dd)[4]`\` and of course our `r colnames(dd)[5]`\`. I chose this model both because it is biologically plausible, but also because it preforms better then the other models fitted. Since all models fitted were nested, a anova test under the F distribution allows us to compare which additionally parameter was worth it. In our case model 4 (chosen model), which contained all three predictors additively explained a total of `r compare_models[1, "RSS"] - compare_models[5, "RSS"]`\` out of the original unexplained `r compare_models[1, "RSS"]`\`. This was statistically significant with a F statistic of `r compare_models[5, "F"]`\`which corresponds to a p-value of \< `r format.pval(compare_models[5, "Pr(>F)"])`\`.
