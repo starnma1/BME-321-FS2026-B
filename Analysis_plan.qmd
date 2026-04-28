@@ -7,10 +7,10 @@ abstract-title: "Research question:"
 abstract: "Does ICS-X lead to a greater improvement of forced expiratory volume (FEV1) compared to a standard inhaler in patients with milkd and persistent asthma?"
 format:
   html:
+    
     embed-resources: true 
     number-sections: true 
     code-fold: show 
-    
 editor_options:
   chunk_output_type: console
 execute:
@@ -19,7 +19,7 @@ execute:
   message: false
 ---
 
-## Effect of a New Inhaled Therapy on Lung Function in Mild Asthma
+## Introduction
 
 A randomized controlled trial evaluates a new inhaled corticosteroid (ICS-X) compared to a standard inhaler in patients with mild persistent asthma.
 
@@ -54,7 +54,8 @@ Patients are randomized to receive either ICS-X or standard therapy for 6 weeks.
 ## Data Import and Screening
 
 ```{r}
-#| ouput: false
+#| label: Importing-data
+#| include: false
 #| echo: false
 
 rm(list = ls())
@@ -83,3 +84,23 @@ sum(is.na(dd)) # No NA
 # Check balanced RCT design
 table(dd$treatment_group)
 ```
+
+Data was successfully imported and screened. No inconsistencies, further information in the data exploration sections.
+
+## Numerical Exploration
+
+```{r}
+#| label: tbl-Numerical
+#| echo: false
+#| message: false
+#| warning: false
+#| paged-print: false
+
+table <- round(stat.desc(dd[,1:4], norm = T), 2)
+knitr::kable(table, format = "html", align = "c", col.names = c("Patient ID",
+                                                "FEV1 Improvment from Baseline",
+                                                "Age of Patient",
+                                                "Baseine FEV1"))
+```
+
+After importing and screening the data, it seems that everything is in order. The
