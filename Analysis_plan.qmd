@@ -91,7 +91,7 @@ Data was successfully imported and screened. No inconsistencies, further informa
 
 ```{r}
 #| label: tbl-Numerical
-#| tbl-cap: "This is a table"
+#| tbl-cap: "Table showing various descriptive statistics of the Asthma RCT superiority trial"
 #| echo: false
 #| message: false
 #| warning: false
@@ -108,4 +108,37 @@ table_final <- knitr::kable(table, align = "c", col.names = c("Patient ID",
 table_final
 ```
 
-After importing and screening the data, it seems that everything is in order. The @tbl-Numerical shows the Patient ID, FEV1 improvement score, Age of the Patient and the Baseline FEV1. The last two predictors, mainly the treatment group and smoking status were not included, as their descriptive statistics are not interpret-able due to them being categorical variables. Additionally, in the numerical exploration a correlation matrix was done to explore possible pre-preemptive correlations as well as the possibility of co-linearity, a violation of our later model choice. The correlation matrix showed a weak to moderate negative correlation between the treatment group (ICSX or standard inhaler) with a value of `r corr_matrix[5,2]`\`. In other words, the ICSX treatment in this preemptive exploration accounts for a 0.2 higher FEV1 then the standard inhaler, however this is very early on in the process, meaning this value cannot be interpreted, instead gave us a good indication of a possible effect direction. Addtionally, it was intresting that the FEV1 improvement also heavily depended on the FEV1 baseline showing a moderate negative correlation of `r corr_matrix[4,2]`\`. The final variable that contained intresting information was the smoking status, showing a weak to moderate negative correlation of `r corr_matrix[6, 2]`\`with FEV1 improvement. This will need to be further explored graphically.\
+After importing and screening the data, it seems that everything is in order. The @tbl-Numerical shows the Patient ID, FEV1 improvement score, Age of the Patient and the Baseline FEV1. The last two predictors, mainly the treatment group and smoking status were not included, as their descriptive statistics are not interpret-able due to them being categorical variables. Additionally, in the numerical exploration a correlation matrix was done to explore possible pre-preemptive correlations as well as the possibility of co-linearity, a violation of our later model choice. The correlation matrix showed a weak to moderate negative correlation between the treatment group (ICSX or standard inhaler) with a value of `r corr_matrix[5,2]`\`. In other words, the ICSX treatment in this preemptive exploration accounts for a `r abs(corr_matrix[5,2])` higher FEV1 then the standard inhaler, however this is very early on in the process, meaning this value cannot be interpreted, instead gave us a good indication of a possible effect direction. Addtionally, it was intresting that the FEV1 improvement also heavily depended on the FEV1 baseline showing a moderate negative correlation of `r corr_matrix[4,2]`\`. The final variable that contained intresting information was the smoking status, showing a weak to moderate negative correlation of `r corr_matrix[6, 2]`\`with FEV1 improvement. This will need to be further explored graphically.
+
+## Graphical Exploration 
+
+```{r}
+#| label: fig-Graphical-Exploration
+#| fig-cap: "Graph helping to visualize the research question"
+#| echo: false
+#| include: true
+
+
+p1 <- ggplot() + 
+  geom_point(data = dd, 
+             aes(x = baseline_fev1, y = fev1_improvement, col = treatment_group)) + 
+  geom_smooth(data = dd, 
+             aes(x = baseline_fev1, y = fev1_improvement, col = treatment_group),
+             method = "lm") + 
+  theme_classic() + 
+  xlab("Baseline FEV1 value") + 
+  ylab("FEV1 Improvment from Baseline")
+
+p2 <- ggplot() + 
+  geom_point(data = dd, 
+             aes(x = smoking_status, y = fev1_improvement, col = treatment_group)) + 
+  geom_boxplot(data = dd, 
+             aes(x = smoking_status, y = fev1_improvement, col = treatment_group)) + 
+  theme_classic() + 
+  xlab("Smoking Status") + 
+  ylab("FEV1 Improvment from Baseline")
+
+ggarrange(p1, p2, common.legend = T)
+```
+
+As shown in both the left and right plot in the @fig-Graphical-Exploration, there is a negative relationship for both treatment groups (standard treatment and ICSX) for increasing baseline FEV1 value. Although counterintuitive, the plot on the right showing smoking status vs FEV1 improvement indicates a positive relationship between increasing smoking and FEV1 improvement, nonetheless the confidence is low. Additionally, this makes me consider a interaction based model as this is biologically not as clear to me.
