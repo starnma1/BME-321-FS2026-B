@@ -108,7 +108,7 @@ table_final <- knitr::kable(table, align = "c", col.names = c("Patient ID",
 table_final
 ```
 
-After importing and screening the data, it seems that everything is in order. The @tbl-Numerical shows the Patient ID, FEV1 improvement score, Age of the Patient and the Baseline FEV1. The last two predictors, mainly the treatment group and smoking status were not included, as their descriptive statistics are not interpret-able due to them being categorical variables. Additionally, in the numerical exploration a correlation matrix was done to explore possible pre-preemptive correlations as well as the possibility of co-linearity, a violation of our later model choice. The correlation matrix showed a weak to moderate negative correlation between the treatment group (ICSX or standard inhaler) with a value of `r corr_matrix[5,2]`\`. In other words, the ICSX treatment in this preemptive exploration accounts for a `r abs(corr_matrix[5,2])` higher FEV1 then the standard inhaler, however this is very early on in the process, meaning this value cannot be interpreted, instead gave us a good indication of a possible effect direction. Addtionally, it was intresting that the FEV1 improvement also heavily depended on the FEV1 baseline showing a moderate negative correlation of `r corr_matrix[4,2]`\`. The final variable that contained intresting information was the smoking status, showing a weak to moderate negative correlation of `r corr_matrix[6, 2]`\`with FEV1 improvement. This will need to be further explored graphically.
+After importing and screening the data, it seems that everything is in order. The @tbl-Numerical shows the Patient ID, FEV1 improvement score, Age of the Patient and the Baseline FEV1. The last two predictors, mainly the treatment group and smoking status were not included, as their descriptive statistics are not interpret-able due to them being categorical variables. Additionally, in the numerical exploration a correlation matrix was done to explore possible pre-preemptive correlations as well as the possibility of co-linearity, a violation of our later model choice. The correlation matrix showed a weak to moderate negative correlation between the treatment group (ICSX or standard inhaler) with a value of `r corr_matrix[5,2]`\`. In other words, the ICSX treatment in this preemptive exploration accounts for a `r abs(corr_matrix[5,2])` higher FEV1 after intervention then the standard inhaler, however this is very early on in the process, meaning this value cannot be interpreted, instead gave us a good indication of a possible effect direction. Addtionally, it was intresting that the FEV1 improvement also heavily depended on the FEV1 baseline showing a moderate negative correlation of `r corr_matrix[4,2]`\`. The final variable that contained intresting information was the smoking status, showing a weak to moderate negative correlation of `r corr_matrix[6, 2]`\`with FEV1 improvement. This will need to be further explored graphically.
 
 ## Graphical Exploration
 
@@ -192,3 +192,71 @@ check_model(model)
 ```
 
 As one can see the data is simulated as all the assumptions, show in @fig-Model-validation are not only fulfilled but awkwardly so. Nonetheless, there is no co linearity, there is homogeneous variance in the residuals, no outliers or high leverage points, the normality assumption is fulfilled and our models predicted data seems to match our real data quite well. No red flags, thus it is possible to move on to the summary and prediction plots.
+
+## Model Summary
+
+```{r}
+#| label: fig-Prediction-Plot
+#| fig-cap: "Figure showing the respective effect sizes for treatment controlling for smoking and FEV1 baseline"
+#| echo: false
+#| output: true
+
+s <- seq(min(dd$baseline_fev1), max(dd$baseline_fev1), length.out = 100)
+
+pred_data <- predict_response(model,
+                              c("baseline_fev1 [s]",
+                                "smoking_status",
+                                "treatment_group"))
+
+prediction_plot <- ggplot(dd) + 
+  geom_point(data = dd, aes(x = baseline_fev1, y = fev1_improvement, col = treatment_group),
+             position = position_jitter(width = .4)) + 
+  facet_wrap(~smoking_status) + 
+  geom_line(data = pred_data, 
+            aes(x = x, y = predicted, col = facet)) + 
+  geom_ribbon(data = pred_data, 
+              aes(x= x, y = predicted, fill = facet, ymin = conf.low, ymax = conf.high),
+              alpha = .2) +
+  facet_wrap(~group) + 
+  theme_bw() +
+  xlab("Baseline FEV1 value for three levels of Smokers") + 
+  ylab("FEV1 improvment from baseline after intervention") + 
+  scale_color_discrete(
+    name = "Treatment Group",
+    labels = c("ICS-X", "Standard Inhaler")
+  ) +
+  scale_fill_discrete(
+    name = "Treatment Group",
+    labels = c("ICS-X", "Standard Inhaler")
+  ) + 
+  theme(legend.position = "bottom")
+
+print(prediction_plot)
+
+```
+
+```{r}
+#| label: tbl-summary
+#| tbl-cap: "Table showing the model estimates, standard errors, statistical estimates and likely hood of them happening (p-value)"
+#| echo: false
+#| output: true
+
+
+model_output <- summary(model)$coeff
+
+knitr::kable(round(model_output, 3), align = "c")
+```
+
+Although hard to see and might have been a little over-the-top trying to include all predictors, @fig-Prediction-Plot shows the predicted effect of smoking status, treatment group and Baseline FEV1 value on the FEV1 improvement after intervention. I tried to change the row.names of the summary table shown in @tbl-summary however i kept getting errors, nonetheless... The intercept which has an estimate of `r model_output[1,1]`\`has no biological meaning, since this is the mean FEV1 improvement score for ICSX treatment for a current smoker, however with a baseline FEV1 of 0. Thus, the model mean FEV1 improvement of a curent smoker and ICSX treatment for a mean baseline FEV1 value is `r model_output[1,1] + mean(dd$baseline_fev1)`\`. As the person reduces their smoking from current to former and then never, we see a reduction in the FEV1 improvement score by `r model_output[4,1]`\` for former smokers and `r model_output[5,1]`\`if the patient never smoked. This is suprising to me and counterintuitive, however who knows, biology! In addition, to hammer the point home these values are statistically significant with a p-value of \> `r model_output[4,4]`\` and \>`r model_output[5,4]`\`respectively.
+
+The interesting science however is the effect of the treatment group, this showed a negative effect, providing evidence for the superiority of the ICSX treatment compared to the standard treatment with an effect size of `r model_output[1,2]`\` with the confidence interval ranging from `r confint(model)[2]`\`.
+
+I could keep writing but my hands hurt and i hope i showed that i understand the model output.
+
+```{r}
+#| label: version used
+#| echo: false
+
+
+version<- sessionInfo()
+```
