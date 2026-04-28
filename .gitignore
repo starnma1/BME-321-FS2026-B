@@ -12,3 +12,4 @@ output/
 # Quarto defaults
 /.quarto/
 **/*.quarto_ipynb
+ _quarto.yml

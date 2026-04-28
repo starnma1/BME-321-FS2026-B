@@ -52,3 +52,34 @@ Patients are randomized to receive either ICS-X or standard therapy for 6 weeks.
 -   A negative Age effect on improvement
 
 ## Data Import and Screening
+
+```{r}
+#| ouput: false
+#| echo: false
+
+rm(list = ls())
+
+# Import necessary libraries
+  library(performance)
+  library(pastecs)
+  library(car)
+  library(ggplot2)
+  library(ggpubr)
+  library(ggeffects)
+  library(GGally)
+  library(tidyverse)
+  library(glue)
+
+# load data
+dd <- read.csv("data/processed/lung-function.csv", stringsAsFactors = T)
+
+# Screen data
+str(dd)
+summary(dd)
+
+# Check for NA's
+sum(is.na(dd)) # No NA
+
+# Check balanced RCT design
+table(dd$treatment_group)
+```
