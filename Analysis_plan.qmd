@@ -175,3 +175,20 @@ AIC_compare <- compare_performance(model.null, model.1, model.2, model.3, model.
 ```
 
 I will go with model.4, which contains additivly the predictor variables `r colnames(dd)[6]`\`, `r colnames(dd)[4]`\` and of course our `r colnames(dd)[5]`\`. I chose this model both because it is biologically plausible, but also because it preforms better then the other models fitted. Since all models fitted were nested, a anova test under the F distribution allows us to compare which additionally parameter was worth it. In our case model 4 (chosen model), which contained all three predictors additively explained a total of `r compare_models[1, "RSS"] - compare_models[5, "RSS"]`\` out of the original unexplained `r compare_models[1, "RSS"]`\`. This was statistically significant with a F statistic of `r compare_models[5, "F"]`\`which corresponds to a p-value of \< `r format.pval(compare_models[5, "Pr(>F)"])`\`.
+
+## Model Validation
+
+```{r}
+#| label: fig-Model-validation
+#| echo: true
+#| fig-cap: Check model function providing 5 graphs summarizing the model assumptions and whether or not they are fullfilled
+#| fig-height: 16
+#| fig-width: 10
+#| output: true
+
+model <- model.4
+
+check_model(model)
+```
+
+As one can see the data is simulated as all the assumptions, show in @fig-Model-validation are not only fulfilled but awkwardly so. Nonetheless, there is no co linearity, there is homogeneous variance in the residuals, no outliers or high leverage points, the normality assumption is fulfilled and our models predicted data seems to match our real data quite well. No red flags, thus it is possible to move on to the summary and prediction plots.
