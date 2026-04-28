@@ -91,16 +91,21 @@ Data was successfully imported and screened. No inconsistencies, further informa
 
 ```{r}
 #| label: tbl-Numerical
+#| tbl-cap: "This is a table"
 #| echo: false
 #| message: false
 #| warning: false
 #| paged-print: false
 
+corr_matrix <- round(cor(sapply(dd, as.numeric)), 2)
+
 table <- round(stat.desc(dd[,1:4], norm = T), 2)
-knitr::kable(table, format = "html", align = "c", col.names = c("Patient ID",
+table_final <- knitr::kable(table, align = "c", col.names = c("Patient ID",
                                                 "FEV1 Improvment from Baseline",
                                                 "Age of Patient",
                                                 "Baseine FEV1"))
+
+table_final
 ```
 
-After importing and screening the data, it seems that everything is in order. The
+After importing and screening the data, it seems that everything is in order. The @tbl-Numerical shows the Patient ID, FEV1 improvement score, Age of the Patient and the Baseline FEV1. The last two predictors, mainly the treatment group and smoking status were not included, as their descriptive statistics are not interpret-able due to them being categorical variables. Additionally, in the numerical exploration a correlation matrix was done to explore possible pre-preemptive correlations as well as the possibility of co-linearity, a violation of our later model choice. The correlation matrix showed a weak to moderate negative correlation between the treatment group (ICSX or standard inhaler) with a value of `r corr_matrix[5,2]`\`. In other words, the ICSX treatment in this preemptive exploration accounts for a 0.2 higher FEV1 then the standard inhaler, however this is very early on in the process, meaning this value cannot be interpreted, instead gave us a good indication of a possible effect direction. Addtionally, it was intresting that the FEV1 improvement also heavily depended on the FEV1 baseline showing a moderate negative correlation of `r corr_matrix[4,2]`\`. The final variable that contained intresting information was the smoking status, showing a weak to moderate negative correlation of `r corr_matrix[6, 2]`\`with FEV1 improvement. This will need to be further explored graphically.\
