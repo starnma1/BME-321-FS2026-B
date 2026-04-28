@@ -1,0 +1,22 @@
+---
+title: "Analysis_script"
+editor: visual
+date: today
+toc: false
+abstract-title: "Research question:"
+abstract: "How do environmental stressors and resource availability influence reproductive success?"
+format:
+  html:
+    embed-resources: true 
+    number-sections: true 
+    code-fold: show 
+    
+editor_options:
+  chunk_output_type: console
+execute:
+  
+  warning: false 
+  message: false
+---
+
+## Introduction
